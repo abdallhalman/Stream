@@ -36,7 +36,8 @@ const YT_URL = "https://www.youtube.com/live/mryyH3FQNAI";
 let videoPath;
 try {
     console.log("Getting YouTube stream URL...");
-    videoPath = execSync(`yt-dlp -g -f "best[height<=720]" "${YT_URL}"`, { encoding: "utf8" }).trim();
+
+videoPath = execSync(`yt-dlp -g -f "best[height<=720]" --extractor-args "youtube:player_client=android" "${YT_URL}"`, { encoding: "utf8" }).trim();
     console.log("Stream URL obtained.");
 } catch(e) {
     console.error("yt-dlp failed, falling back to local video:", e.message);
