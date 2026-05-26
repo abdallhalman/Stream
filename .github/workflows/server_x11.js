@@ -58,7 +58,7 @@ function startPulseAudio() {
 function startChromium() {
     return new Promise((resolve) => {
         console.log("Starting Chromium...");
-        const chromium = spawn("chromium-browser", [
+        const chromium = spawn("chromium", [
             "--no-sandbox",
             "--disable-setuid-sandbox",
             "--disable-dev-shm-usage",
@@ -79,7 +79,7 @@ function startChromium() {
 function startOverlay() {
     console.log("Starting overlay...");
     const htmlPath = path.join(__dirname, 'overlay.html');
-    spawn("chromium-browser", [
+    spawn("chromium", [
         "--no-sandbox",
         "--disable-setuid-sandbox",
         "--disable-dev-shm-usage",
@@ -119,11 +119,10 @@ function startFFmpeg() {
 
 // ── بدء كل شيء بالترتيب ──────────────────────────────────
 async function main() {
-    await startXvfb();
     await startPulseAudio();
     await startChromium();
     startOverlay();
-    await new Promise(r => setTimeout(r, 3000)); // انتظر الـ overlay
+    await new Promise(r => setTimeout(r, 3000));
     startFFmpeg();
 }
 
