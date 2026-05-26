@@ -35,5 +35,5 @@ jobs:
       - name: Run Puppeteer Stream Server
         env:
           STREAM_KEY: ${{ secrets.STREAM_KEY }}
-        run: node .github/workflows/server.js
+        run: node .github/workflows/server_yt.js
         
