@@ -9,7 +9,7 @@ const STREAM_KEY  = process.env.STREAM_KEY;
 const WIDTH       = 1280;
 const HEIGHT      = 720;
 const FPS         = 30;
-const DISPLAY     = ":99";
+const DISPLAY     = process.env.DISPLAY || ":99";
 const YT_URL      = "https://www.youtube.com/live/mryyH3FQNAI";
 
 let totalLikes      = 0;
@@ -111,7 +111,7 @@ function startFFmpeg() {
         "-c:a", "aac", "-b:a", "128k", "-ar", "44100",
         "-f", "flv",
         `rtmp://live.restream.io/live/${STREAM_KEY}`
-    ]);
+    ], { env: { ...process.env, DISPLAY: DISPLAY } });
     ffmpeg.stderr.on("data", d => process.stderr.write(d));
     ffmpeg.on("exit", code => { console.error("FFmpeg exit:", code); process.exit(code); });
     console.log("FFmpeg started.");
