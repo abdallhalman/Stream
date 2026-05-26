@@ -19,6 +19,7 @@ jobs:
             ffmpeg \
             xvfb \
             pulseaudio \
+            chromium \
             fonts-noto-color-emoji \
             curl \
             libgbm1 \
@@ -27,20 +28,18 @@ jobs:
             libxss1 \
             libgtk-3-0 \
             libatk-bridge2.0-0 \
-            libgdk-pixbuf2.0-0 \
-            chromium
-
-      - name: Start Xvfb
-        run: |
-          Xvfb :99 -screen 0 1280x720x24 -ac &
-          sleep 3
-          echo "DISPLAY=:99" >> $GITHUB_ENV
+            libgdk-pixbuf2.0-0
 
       - name: Install Node tools
         run: npm install tiktok-live-connector ws
 
-      - name: Run x11 Stream Server
+      - name: Run Stream
         env:
           STREAM_KEY: ${{ secrets.STREAM_KEY }}
-          DISPLAY: ":99"
-        run: node .github/workflows/server_x11.js
+        run: |
+          Xvfb :99 -screen 0 1280x720x24 -ac &
+          sleep 3
+          export DISPLAY=:99
+          pulseaudio --start --exit-idle-time=-1
+          sleep 1
+          node .github/workflows/server_x11.js

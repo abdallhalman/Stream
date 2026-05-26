@@ -119,7 +119,6 @@ function startFFmpeg() {
 
 // ── بدء كل شيء بالترتيب ──────────────────────────────────
 async function main() {
-    await startPulseAudio();
     await startChromium();
     startOverlay();
     await new Promise(r => setTimeout(r, 3000));
