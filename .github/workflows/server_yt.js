@@ -43,7 +43,6 @@ try {
     videoPath = path.join(__dirname, '../../video.mp4');
 }
 
-const audioPath = path.join(__dirname, '../../merged_audio.mp3');
 const framesDir = path.join(__dirname, '../../frames');
 const tmpPath   = path.join(__dirname, '../../overlay_tmp.png');
 
@@ -67,10 +66,9 @@ function startFFmpeg() {
         "-stream_loop", "-1",
         "-i", path.join(framesDir, "frame_%03d.png"),
         "-re", "-i", videoPath,
-        "-stream_loop", "-1", "-re", "-i", audioPath,
         "-filter_complex", `[1:v]crop=${WIDTH-rndCrop}:${HEIGHT-rndCrop}:${rndX}:${rndY},scale=${WIDTH}:${HEIGHT},eq=brightness=${rndBright}:contrast=1.0[v1];[v1][0:v]overlay=0:0[v]`,
         "-map", "[v]",
-        "-map", "2:a",
+        "-map", "1:a", 
         "-c:v", "libx264",
         "-preset", "ultrafast",
         "-tune", "zerolatency",
