@@ -71,7 +71,7 @@ function startChromium() {
         ], { env: { ...process.env, DISPLAY } });
         chromium.on("error", e => console.error("Chromium error:", e.message));
         // انتظر 15 ثانية للتحميل
-        setTimeout(resolve, 15000);
+        setTimeout(resolve, 90000);
     });
 }
 
