@@ -1,0 +1,39 @@
+name: test.puppeteer.x11
+
+on:
+  workflow_dispatch:
+
+jobs:
+  stream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            ffmpeg \
+            chromium-browser \
+            xvfb \
+            pulseaudio \
+            fonts-noto-color-emoji \
+            curl \
+            libgbm1 \
+            libasound2t64 \
+            libnss3 \
+            libxss1 \
+            libgtk-3-0 \
+            libatk-bridge2.0-0 \
+            libgdk-pixbuf2.0-0
+
+      - name: Install Node tools
+        run: npm install tiktok-live-connector ws
+
+      - name: Run x11 Stream Server
+        env:
+          STREAM_KEY: ${{ secrets.STREAM_KEY }}
+        run: node .github/workflows/server_x11.js
