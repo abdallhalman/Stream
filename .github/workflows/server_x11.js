@@ -99,7 +99,7 @@ function startFFmpeg() {
         "-f", "x11grab",
         "-r", rndSpeed,
         "-s", `${WIDTH}x${HEIGHT}`,
-        "-i", `${DISPLAY}:0.0`,
+        "-i", `${DISPLAY}.0`,
         "-f", "pulse",
         "-i", "default",
         "-vf", `eq=brightness=${rndBright}:contrast=1.0`,
