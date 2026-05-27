@@ -415,16 +415,14 @@
                         currentFollowUser = null;
                     }, 7000);
                 }
-                // ── منطق العداد التراكمي الحي للهدايا مع عرض أيقونة الهدية الرسمية ──
+                                // ── كود معالجة الهدايا المطور مع جلب وعرض الأيقونة الرسمية فخمة ──
                 if (msg.type === "gift") {
                     const name     = msg.data.name || "داعم كريم";
                     const giftName = msg.data.giftName;
                     const avatar   = msg.data.avatar || fallbackAvatar;
                     const newCount = msg.data.count || 1;
-                    // جلب رابط أيقونة الهدية من التيك توك مباشرة
-                    const giftIcon = msg.data.giftIcon || msg.data.giftPictureUrl || ""; 
+                    const giftIcon = msg.data.giftIcon || ""; // الرابط المؤمن القادم من السيرفر
 
-                    // تحقق إذا كان نفس الشخص يرسل نفس الهدية متتالياً لزيادة العداد
                     if (currentGiftUser === name && currentGiftName === giftName) {
                         currentGiftCount += newCount;
                         clearTimeout(giftTimer);
@@ -437,11 +435,36 @@
                             countEl.classList.add("count-pop");
                         }
                     } else {
-                        // إرسالية جديدة بالكامل
                         currentGiftUser  = name;
                         currentGiftName  = giftName;
                         currentGiftCount = newCount;
                         clearTimeout(giftTimer);
+
+                        // تجهيز أيقونة الهدية بتأثير نبض مبهج ومنفصل في اليسار
+                        const giftImgHtml = giftIcon ? `<img src="${giftIcon}" class="gift-icon-neon" style="width: 45px; height: 45px; object-fit: contain; animation: popScale 0.4s infinite alternate; filter: drop-shadow(0 0 8px rgba(255,188,0,0.5));">` : "";
+
+                        giftContainer.innerHTML = `
+                            <div class="gift-banner" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+                                <div style="display: flex; align-items: center; gap: 14px;">
+                                    <img src="${avatar}" onerror="this.src='${fallbackAvatar}'" style="width: 48px; height: 48px; border-radius: 50%; border: 2px solid #ffbc00; flex-shrink: 0;">
+                                    <div class="gift-text">
+                                        <h2 style="font-size: 16px; font-weight: 700; color: #fff; margin: 0; font-family: 'IBM Plex Sans Arabic', sans-serif;"> 🤍 شكراً: ${name}</h2>
+                                        <p id="gift-counter-hit" class="count-pop" style="margin-top: 4px; font-family: 'IBM Plex Sans Arabic', sans-serif;">${giftName} × ${currentGiftCount}</p>
+                                    </div>
+                                </div>
+                                <div style="margin-right: auto; padding-right: 5px; display: flex; align-items: center;">
+                                    ${giftImgHtml} </div>
+                            </div>`;
+                    }
+
+                    giftTimer = setTimeout(() => {
+                        giftContainer.innerHTML = "";
+                        currentGiftUser  = null;
+                        currentGiftName  = null;
+                        currentGiftCount = 0;
+                    }, 7000);
+                }
+
 
                         // تجهيز وسم صورة الهدية إذا توفر الرابط الخاص بها
                         const giftImgHtml = giftIcon ? `<img src="${giftIcon}" style="width: 48px; height: 48px; object-fit: contain; margin-right: auto; animation: popScale 0.4s infinite alternate;">` : "";
