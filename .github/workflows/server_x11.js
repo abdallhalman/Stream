@@ -10,7 +10,7 @@ const WIDTH       = 1280;
 const HEIGHT      = 720;
 const FPS         = 30;
 const DISPLAY     = process.env.DISPLAY || ":99";
-const YT_URL      = "https://www.youtube.com/live/mryyH3FQNAI";
+const YT_URL      = "https://aloula.sba.sa/live/saudiaalaan";
 
 let totalLikes      = 0;
 let lastJoinTime    = 0;
