@@ -7,10 +7,9 @@ const fs = require("fs");
 
 const TIKTOK_USER = "designer..fares..4k";
 const STREAM_KEY = process.env.STREAM_KEY;
-const WIDTH       = 1280;
-const HEIGHT      = 720;
-const FPS         = 30;
-const BUFFER_SIZE = 60;
+const WIDTH  = 1280;
+const HEIGHT = 720;
+const FPS    = 30;
 
 let totalLikes = 0;
 let lastJoinTime = 0;
@@ -31,29 +30,26 @@ function sendToOverlay(type, data) {
     }
 }
 
-const videoPath = path.join(__dirname, '../../video.mp4');
-const audioPath = path.join(__dirname, '../../merged_audio.mp3');
-const framesDir = path.join(__dirname, '../../frames');
-const tmpPath   = path.join(__dirname, '../../overlay_tmp.png');
+const videoPath   = path.join(__dirname, '../../video.mp4');
+const audioPath   = path.join(__dirname, '../../merged_audio.mp3');
+const overlayPath = path.join(__dirname, '../../overlay.png');     // ← ملف واحد ثابت
+const tmpPath     = path.join(__dirname, '../../overlay_tmp.png'); // ← مؤقت للكتابة الآمنة
 
-function getFramePath(index) {
-    return path.join(framesDir, `frame_${String(index % BUFFER_SIZE).padStart(3,'0')}.png`);
-}
-
-let ffmpegStarted = false;
 const rndCrop   = Math.floor(Math.random() * 20);
 const rndX      = Math.floor(Math.random() * (rndCrop + 1));
 const rndY      = Math.floor(Math.random() * (rndCrop + 1));
 const rndBright = ((Math.random() * 0.06) - 0.03).toFixed(3);
 const rndSpeed  = (27 + Math.random() * 6).toFixed(2);
+
+let ffmpegStarted = false;
+
 function startFFmpeg() {
     if (ffmpegStarted) return;
     ffmpegStarted = true;
+
     const ffmpeg = spawn("ffmpeg", [
-        "-re", "-framerate", `${FPS}`,
-        "-f", "image2",
-        "-stream_loop", "-1",
-        "-i", path.join(framesDir, "frame_%03d.png"),
+        // ← الأوفرلاي: ملف واحد يُقرأ باستمرار بدون buffer دوار
+        "-re", "-stream_loop", "-1", "-i", overlayPath,
         "-stream_loop", "-1", "-re", "-i", videoPath,
         "-stream_loop", "-1", "-re", "-i", audioPath,
         "-filter_complex", `[1:v]crop=${WIDTH-rndCrop}:${HEIGHT-rndCrop}:${rndX}:${rndY},scale=${WIDTH}:${HEIGHT},eq=brightness=${rndBright}:contrast=1.0[v1];[v1][0:v]overlay=0:0[v]`,
@@ -69,23 +65,12 @@ function startFFmpeg() {
         "-f", "flv",
         `rtmp://live.restream.io/live/${STREAM_KEY}`
     ]);
+
     ffmpeg.stderr.on("data", d => process.stderr.write(d));
     console.log("FFmpeg started.");
 }
 
-let writeIndex = 0;
 let puppeteerStarted = false;
-
-async function fillBuffer(page) {
-    console.log(`Filling buffer: ${BUFFER_SIZE} frames...`);
-    for (let i = 0; i < BUFFER_SIZE; i++) {
-        const screenshot = await page.screenshot({ type: 'png', omitBackground: true });
-        fs.writeFileSync(tmpPath, screenshot);
-        fs.renameSync(tmpPath, getFramePath(i));
-    }
-    writeIndex = BUFFER_SIZE;
-    console.log("Buffer ready, starting FFmpeg...");
-}
 
 async function startPuppeteer() {
     if (puppeteerStarted) return;
@@ -102,17 +87,21 @@ async function startPuppeteer() {
     const htmlPath = path.join(__dirname, 'overlay.html');
     await page.goto(`file://${htmlPath}`);
 
-    if (!fs.existsSync(framesDir)) fs.mkdirSync(framesDir);
+    // ← اكتب أول صورة ثم ابدأ FFmpeg
+    console.log("Writing first overlay frame...");
+    const first = await page.screenshot({ type: 'png', omitBackground: true });
+    fs.writeFileSync(tmpPath, first);
+    fs.renameSync(tmpPath, overlayPath);
+    console.log("overlay.png ready, starting FFmpeg...");
 
-    await fillBuffer(page);
     startFFmpeg();
 
+    // ← تحديث مستمر بنظام الملف الواحد الآمن
     setInterval(async () => {
         try {
             const screenshot = await page.screenshot({ type: 'png', omitBackground: true });
             fs.writeFileSync(tmpPath, screenshot);
-            fs.renameSync(tmpPath, getFramePath(writeIndex));
-            writeIndex++;
+            fs.renameSync(tmpPath, overlayPath); // ← فوري وآمن، لا flicker
         } catch (e) {
             console.error("Screenshot error:", e.message);
         }
@@ -159,7 +148,6 @@ tiktok.on("like", data => {
     }
 });
 
-// ← comment + chat معاً
 function handleComment(data) {
     const now = Date.now();
     if (now - lastCommentTime >= EVENT_THROTTLE_MS) {
@@ -177,7 +165,7 @@ function handleComment(data) {
 }
 
 tiktok.on("comment", handleComment);
-tiktok.on("chat",    handleComment); // ← الناقص في الكود القديم
+tiktok.on("chat",    handleComment);
 
 tiktok.on("follow", data => {
     sendToOverlay("follow", {
@@ -188,16 +176,13 @@ tiktok.on("follow", data => {
 });
 
 tiktok.on("gift", (data) => {
-    // نقرأ الحدث عندما ينتهي التكرار أو إذا كانت الهدية فردية
     if (data.repeatEnd || data.repeatCount === 1) {
-        
-        // 🛠️ فحص شامل وتأمين كل الاحتمالات لروابط صور الهدايا من تيك توك
         let officialGiftIcon = "";
         if (data.giftPictureUrl) {
             officialGiftIcon = data.giftPictureUrl;
-        } else if (data.image && data.image.url_list && data.image.url_list[0]) {
+        } else if (data.image?.url_list?.[0]) {
             officialGiftIcon = data.image.url_list[0];
-        } else if (data.extendedGiftInfo && data.extendedGiftInfo.image && data.extendedGiftInfo.image.url_list) {
+        } else if (data.extendedGiftInfo?.image?.url_list?.[0]) {
             officialGiftIcon = data.extendedGiftInfo.image.url_list[0];
         }
 
@@ -206,12 +191,10 @@ tiktok.on("gift", (data) => {
             giftName: data.giftName,
             count: data.repeatCount || 1,
             avatar: data.profilePictureUrl,
-            giftIcon: officialGiftIcon // تمرير الرابط المضمون للأوفرلاي
+            giftIcon: officialGiftIcon
         });
     }
 });
 
-
 setTimeout(connectTikTok, 120000);
 startPuppeteer();
-  
