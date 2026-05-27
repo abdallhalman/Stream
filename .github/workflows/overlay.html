@@ -464,29 +464,6 @@
                         currentGiftCount = 0;
                     }, 7000);
                 }
-
-
-                        // تجهيز وسم صورة الهدية إذا توفر الرابط الخاص بها
-                        const giftImgHtml = giftIcon ? `<img src="${giftIcon}" style="width: 48px; height: 48px; object-fit: contain; margin-right: auto; animation: popScale 0.4s infinite alternate;">` : "";
-
-                        giftContainer.innerHTML = `
-                            <div class="gift-banner">
-                                <img src="${avatar}" onerror="this.src='${fallbackAvatar}'">
-                                <div class="gift-text">
-                                    <h2> 🤍 شكراً: ${name}</h2>
-                                    <p id="gift-counter-hit" class="count-pop">${giftName} × ${currentGiftCount}</p>
-                                </div>
-                                ${giftImgHtml} </div>`;
-                    }
-
-                    giftTimer = setTimeout(() => {
-                        giftContainer.innerHTML = "";
-                        currentGiftUser  = null;
-                        currentGiftName  = null;
-                        currentGiftCount = 0;
-                    }, 7000);
-                }
-
             } catch (e) {
                 console.error("خطأ في التحليل:", e);
             }
