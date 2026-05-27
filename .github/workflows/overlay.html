@@ -32,6 +32,7 @@
             align-items: center;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
             z-index: 100;
+            will-change: transform, opacity;
         }
         .clock-time {
             font-size: 21px; /* تصغير الخط */
@@ -39,6 +40,9 @@
             color: #ffffff;
             letter-spacing: 1px;
             direction: ltr;
+            transition: all 0.5s cubic-bezier(0.25, 1, 0.5, 1) !important;
+            transform: translate3d(0, 0, 0); 
+            will-change: transform, opacity;
         }
         .clock-label {
             font-size: 10px;
@@ -66,8 +70,8 @@
            border-radius: 16px;
            border: 1px solid rgba(255, 255, 255, 0.12);
            z-index: 100;
+           will-change: transform, opacity;
        }
-
 
         /* ── بنر الهدايا الذكي والمطور ── */
         #gift-banner-container {
@@ -94,7 +98,10 @@
             align-items: center;
             gap: 16px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 15px rgba(255, 188, 0, 0.1);
-            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: bounceIn 0.9s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+            transform: translate3d(0, 0, 0);
+            will-change: transform, opacity;
+
         }
         .gift-banner img { 
             width: 48px; 
@@ -139,7 +146,7 @@
             pointer-events: none;
             z-index: 200; /* يضمن الظهور فوق كروت الشات والانضمام */
         }
-                .follow-banner {
+        .follow-banner {
             background: rgba(15, 15, 25, 0.85); /* 🛠️ خلفية داكنة فخمة متناسقة مع الشات */
             backdrop-filter: blur(20px);
             -webkit-backdrop-filter: blur(20px);
@@ -150,7 +157,10 @@
             align-items: center;
             gap: 16px;
             box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(157, 93, 255, 0.2);
-            animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: slideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+            transform: translate3d(0, 0, 0);
+            will-change: transform, opacity;
+
         }
         .follow-banner img { 
             width: 50px; 
