@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>Stream Overlay Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            width: 1280px;
+            height: 720px;
+            background: transparent !important;
+            overflow: hidden;
+            position: relative;
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── 1. الساعة المصغرة بدون ثواني (فوق يسار) ── */
+        .clock-box {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 14px;
+            padding: 8px 16px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            z-index: 100;
+        }
+        .clock-time {
+            font-size: 21px; /* تصغير الخط */
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: 1px;
+            direction: ltr;
+        }
+        .clock-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 1px;
+        }
+
+        
+        /* ── شريط الإحصائيات (فوق يمين) ── */
+        .stats-bar {
+           position: absolute;
+           top: 25px;
+           right: 25px;
+           display: flex;
+           gap: 20px;
+           font-size: 21px;
+           font-weight: 700;
+           color: #ffffff;
+           letter-spacing: 0.5px;
+           background: rgba(0, 0, 0, 0.55);
+           backdrop-filter: blur(15px);
+           -webkit-backdrop-filter: blur(15px);
+           padding: 10px 25px;
+           border-radius: 16px;
+           border: 1px solid rgba(255, 255, 255, 0.12);
+           z-index: 100;
+       }
+
+
+        /* ── بنر الهدايا الذكي المستقر ── */
+        #gift-banner-container {
+            position: absolute;
+            top: 160px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 620px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+            z-index: 90;
+        }
+        .gift-banner {
+            background: linear-gradient(135deg, rgba(180, 0, 100, 0.92) 0%, rgba(90, 0, 200, 0.92) 100%);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 20px;
+            padding: 16px 36px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .gift-banner img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.4); }
+        .gift-text h2 { font-size: 22px; font-weight: 700; color: #fff; }
+        .gift-text p  { font-size: 17px; color: #ffeb3b; font-weight: 700; margin-top: 3px; display: inline-block; }
+        
+        /* تأثير النبض لزيادة العداد حياً */
+        .count-pop { animation: popScale 0.3s ease-out; }
+
+        /* ── بنر المتابعة الذكي (فوق الكل) ── */
+        #follow-banner-container {
+            position: absolute;
+            bottom: 140px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 540px;
+            pointer-events: none;
+            z-index: 200; /* يضمن الظهور فوق كروت الشات والانضمام */
+        }
+        .follow-banner {
+            background: rgba(10, 8, 25, 0.65);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(157, 93, 255, 0.5);
+            border-radius: 22px;
+            padding: 16px 22px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            box-shadow: 0 0 40px rgba(157, 93, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.6);
+            animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .follow-banner img { width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(157, 93, 255, 0.7); flex-shrink: 0; }
+        .follow-info { flex: 1; }
+        .follow-label { font-size: 12px; font-weight: 700; color: rgba(180, 130, 255, 0.9); letter-spacing: 1.5px; text-transform: uppercase; }
+        .follow-name { font-size: 24px; color: #ffffff; font-weight: 700; margin-top: 2px; }
+        .follow-count { font-size: 16px; color: rgba(255, 255, 255, 0.8); margin-top: 3px; font-weight: 600; }
+        .follow-icon { font-size: 34px; flex-shrink: 0; }
+
+        /* ── 2. صندوق التعليقات المحسّن (قصير + تأثير التلاشي التدرجي للذكاء البصري iOS) ── */
+        #chat-container {
+            position: absolute;
+            bottom: 40px;
+            right: 30px;
+            width: 440px;
+            height: 600px; /* تقصير الصندوق لحمايته من التمدد للأعلى */
+            display: flex;
+            flex-direction: column-reverse;
+            overflow: hidden;
+            z-index: 50;
+            /* سر صناعة قناع التلاشي التدريجي الـ iOS الخيالي */
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%);
+            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%);
+        }
+        
+        /* تطابق كامل ومثالي مع حواف كروت الانضمام ونظام الـ iOS الرفيع */
+        .chat-msg {
+            background: rgba(12, 12, 18, 0.75);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.12); /* خط الحافة الرفيع الحاد والممتاز */
+            color: #ffffff;
+            padding: 12px 16px;
+            border-radius: 18px; /* نفس حواف الانضمام تماماً */
+            margin-top: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            /* استخدام نفس نظام أنيميشن الـ الانضمام الناعم والمريح للعين */
+            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+         }
+        #chat-container .chat-msg:nth-child(1) { opacity: 1; }
+        #chat-container .chat-msg:nth-child(2) { opacity: 0.7; }
+        #chat-container .chat-msg:nth-child(3) { opacity: 0.4; }
+        #chat-container .chat-msg:nth-child(n+4) { opacity: 0.15; }
+        }
+        
+        .chat-msg .avatar { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255, 188, 0, 0.6); flex-shrink: 0; }
+        .chat-msg .badge  { width: 20px; height: 20px; object-fit: contain; }
+        .chat-msg .username { color: #ffbc00; font-weight: 700; font-size: 17px; }
+        .chat-msg .text { color: rgba(255, 255, 255, 0.95); font-size: 16px; word-break: break-word; margin-top: 3px; line-height: 1.4; font-weight: 600; }
+
+        /* ── صندوق الانضمامات المستقر ── */
+        #join-container {
+            position: absolute;
+            bottom: 40px;
+            left: 30px;
+            width: 360px;
+            height: 350px;
+            display: flex;
+            flex-direction: column-reverse;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 50;
+        }
+        .join-notification {
+            background: rgba(20, 20, 30, 0.60);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 13px 16px;
+            border-radius: 18px;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            box-shadow: 0 6px 24px rgba(0,0,0,0.3);
+            animation: slideInLeft 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15), fadeOut 0.5s ease-out 4.5s forwards;
+        }
+        .join-notification .avatar { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); }
+        .join-notification .name   { color: #ffffff; font-weight: 700; font-size: 16px; }
+        .join-notification .action { color: rgba(255, 255, 255, 0.55); font-size: 13px; margin-top: 2px; font-weight: 600; }
+
+        /* ── جرافيكس الأنيميشنز الثابتة والمريحة ── */
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideInLeft  { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideUp      { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes bounceIn     { 0% { opacity:0; transform:scale(0.85); } 70% { opacity:1; transform:scale(1.02); } 100% { transform:scale(1); } }
+        @keyframes fadeOut      { from { opacity:1; } to { opacity:0; max-height:0; padding:0; margin:0; border:none; } }
+        @keyframes popScale     { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #fff; } 100% { transform: scale(1); } }
+    </style>
+</head>
+<body>
+
+    <div class="clock-box">
+        <div class="clock-time" id="clock-time">00:00</div>
+        <div class="clock-label"> مكة المكرمة </div>
+    </div>
+
+    <div class="stats-bar">
+        <div id="viewers-count">👤 0</div>
+        <div id="likes-count">❤️ 0</div>
+    </div>
+
+    <div id="gift-banner-container"></div>
+    <div id="follow-banner-container"></div>
+    <div id="chat-container"></div>
+    <div id="join-container"></div>
+
+    <script>
+        // تحديث الساعة بدون ثواني
+        function updateClock() {
+            const now = new Date();
+            const ksa = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Riyadh" }));
+            const h = String(ksa.getHours()).padStart(2, '0');
+            const m = String(ksa.getMinutes()).padStart(2, '0');
+            document.getElementById("clock-time").textContent = `${h}:${m}`;
+        }
+        updateClock();
+        setInterval(updateClock, 10000); // تحديث هادئ كل 10 ثوانٍ لعدم إجهاد الصفحة
+
+        const ws = new WebSocket("ws://localhost:8080");
+        const chatContainer   = document.getElementById("chat-container");
+        const joinContainer   = document.getElementById("join-container");
+        const giftContainer   = document.getElementById("gift-banner-container");
+        const followContainer = document.getElementById("follow-banner-container");
+        const fallbackAvatar  = 'https://www.tiktok.com/favicon.ico';
+
+        // متغيرات ذكية لحفظ الذاكرة اللحظية للبث ومنع التكرار البصري
+        let currentGiftUser  = null;
+        let currentGiftName  = null;
+        let currentGiftCount = 0;
+        let giftTimer        = null;
+
+        let currentFollowUser = null;
+        let followTimer       = null;
+
+        ws.onmessage = (event) => {
+            try {
+                const msg = JSON.parse(event.data);
+
+                if (msg.type === "viewerCount") {
+                    document.getElementById("viewers-count").innerText = `👤 ${msg.data.toLocaleString()}`;
+                }
+
+                if (msg.type === "like") {
+                    document.getElementById("likes-count").innerText = `❤️ ${msg.data.toLocaleString()}`;
+                }
+
+                if (msg.type === "comment") {
+                    const msgDiv = document.createElement("div");
+                    msgDiv.className = "chat-msg";
+                    let badgesHtml = "";
+                    if (msg.data.badges && Array.isArray(msg.data.badges)) {
+                        msg.data.badges.forEach(b => {
+                            const url = b.url || b.image?.url;
+                            if (url) badgesHtml += `<img class="badge" src="${url}">`;
+                        });
+                    }
+                    const userAvatar = msg.data.avatar || fallbackAvatar;
+                    msgDiv.innerHTML = `
+                        <img class="avatar" src="${userAvatar}" onerror="this.src='${fallbackAvatar}'">
+                        <div class="msg-content">
+                            <div class="username">${msg.data.name || "متابع"} ${badgesHtml}</div>
+                            <div class="text">${msg.data.text || ""}</div>
+                        </div>`;
+                    chatContainer.prepend(msgDiv);
+                    if (chatContainer.children.length > 15) chatContainer.removeChild(chatContainer.lastChild);
+                }
+
+                if (msg.type === "join") {
+                    const joinDiv = document.createElement("div");
+                    joinDiv.className = "join-notification";
+                    const joinAvatar = msg.data.avatar || fallbackAvatar;
+                    joinDiv.innerHTML = `
+                        <img class="avatar" src="${joinAvatar}" onerror="this.src='${fallbackAvatar}'">
+                        <div class="info">
+                            <div class="name">${msg.data.name || "متابع جديد"}</div>
+                            <div class="action">انضم إلى البث الآن ✨</div>
+                        </div>`;
+                    joinContainer.prepend(joinDiv);
+                    setTimeout(() => { if (joinDiv.parentNode) joinContainer.removeChild(joinDiv); }, 7000);
+                }
+
+                // ── منطق المتابعة الذكي المتتالي ──
+                if (msg.type === "follow") {
+                    const name   = msg.data.name || "متابع جديد";
+                    const avatar = msg.data.avatar || fallbackAvatar;
+                    const count  = msg.data.followerCount ? Number(msg.data.followerCount).toLocaleString() : "";
+
+                    clearTimeout(followTimer);
+                    currentFollowUser = name;
+
+                    followContainer.innerHTML = `
+                        <div class="follow-banner">
+                            <img src="${avatar}" onerror="this.src='${fallbackAvatar}'">
+                            <div class="follow-info">
+                                <div class="follow-label">New Follower 👤</div>
+                                <div class="follow-name">${name}</div>
+                                ${count ? `<div class="follow-count">👥 متابعيك: ${count}</div>` : ""}
+                            </div>
+                            <div class="follow-icon">🎉</div>
+                        </div>`;
+
+                    followTimer = setTimeout(() => {
+                        followContainer.innerHTML = "";
+                        currentFollowUser = null;
+                    }, 7000);
+                }
+
+                // ── منطق العداد التراكمي الحي للهدايا المتتالية ──
+                if (msg.type === "gift") {
+                    const name     = msg.data.name || "داعم كريم";
+                    const giftName = msg.data.giftName;
+                    const avatar   = msg.data.avatar || fallbackAvatar;
+                    const newCount = msg.data.count || 1;
+
+                    // تحقق إذا كان نفس الشخص يرسل نفس الهدية متتالياً
+                    if (currentGiftUser === name && currentGiftName === giftName) {
+                        currentGiftCount += newCount;
+                        clearTimeout(giftTimer);
+                        
+                        const countEl = document.getElementById("gift-counter-hit");
+                        if (countEl) {
+                            countEl.innerText = `${giftName} × ${currentGiftCount}`;
+                            // تفعيل هزة العداد الحية النطاطة
+                            countEl.classList.remove("count-pop");
+                            void countEl.offsetWidth; 
+                            countEl.classList.add("count-pop");
+                        }
+                    } else {
+                        // إرسالية جديدة بالكامل
+                        currentGiftUser  = name;
+                        currentGiftName  = giftName;
+                        currentGiftCount = newCount;
+                        clearTimeout(giftTimer);
+
+                        giftContainer.innerHTML = `
+                            <div class="gift-banner">
+                                <img src="${avatar}" onerror="this.src='${fallbackAvatar}'">
+                                <div class="gift-text">
+                                    <h2> 🤍 شكراً: ${name}</h2>
+                                    <p id="gift-counter-hit" class="count-pop">${giftName} × ${currentGiftCount}</p>
+                                </div>
+                            </div>`;
+                    }
+
+                    giftTimer = setTimeout(() => {
+                        giftContainer.innerHTML = "";
+                        currentGiftUser  = null;
+                        currentGiftName  = null;
+                        currentGiftCount = 0;
+                    }, 7000);
+                }
+
+            } catch (e) {
+                console.error("خطأ في التحليل:", e);
+            }
+        };
+    </script>
+</body>
+    </html>
+    
