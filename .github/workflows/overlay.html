@@ -169,10 +169,26 @@
         #chat-container .chat-msg:nth-child(n+4) { opacity: 0.25; }
         
         .chat-msg .avatar { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 188, 0, 0.6); flex-shrink: 0; }
-        .chat-msg .badge  { width: 18px; height: 18px; object-fit: contain; }
-        .chat-msg .msg-content { flex-grow: 1; min-width: 0; } /* 🛠️ إضافة لضمان تمدد صندوق النص بالكامل */
-        .chat-msg .username { color: #ffbc00; font-weight: 700; font-size: 15px; display: inline; } /* 🛠️ تصغير بسيط وجعل الاسم والنص يتداخلان لإدخال كلام أكثر */
-        .chat-msg .text { color: rgba(255, 255, 255, 0.95); font-size: 14px; word-break: break-word; font-weight: 600; display: inline; margin-right: 5px; } /* 🛠️ تصغير الخط وجعله ينطلق بجانب الاسم مباشرة عند الحاجة */
+        .chat-msg .badge  { width: 18px; height: 18px; object-fit: contain; vertical-align: middle; margin-left: 4px; }
+        .chat-msg .msg-content { flex-grow: 1; min-width: 0; line-height: 1.4; }
+
+         /* ── تطبيق خطوط النظام الذكية المدمجة ── */
+        .chat-msg .username { 
+         color: #ffbc00; 
+         font-weight: 700; 
+         font-size: 14px; 
+         display: inline; 
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+         } 
+        .chat-msg .text { 
+         color: rgba(255, 255, 255, 0.95); 
+         font-size: 14px; 
+         word-break: break-word; 
+         font-weight: 600; 
+         display: inline; 
+         margin-right: 6px; 
+         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, system-ui, sans-serif;
+       }
 
         /* ── صندوق الانضمامات المستقر ── */
         #join-container {
@@ -276,18 +292,17 @@
                     msgDiv.className = "chat-msg";
                     let badgesHtml = "";
                     if (msg.data.badges && Array.isArray(msg.data.badges)) {
-                        msg.data.badges.forEach(b => {
-                            const url = b.url || b.image?.url;
-                            if (url) badgesHtml += `<img class="badge" src="${url}">`;
+                    msg.data.badges.forEach(b => {
+                    const url = b.url || b.image?.url;
+                    if (url) badgesHtml += `<img class="badge" src="${url}">`;
                         });
-                    }
+                }
                     const userAvatar = msg.data.avatar || fallbackAvatar;
-                    msgDiv.innerHTML = `
+                      msgDiv.innerHTML = `
                         <img class="avatar" src="${userAvatar}" onerror="this.src='${fallbackAvatar}'">
-                        <div class="msg-content">
-                            <div class="username">${msg.data.name || "متابع"} ${badgesHtml}</div>
-                            <div class="text">${msg.data.text || ""}</div>
-                        </div>`;
+                         <div class="msg-content">
+                         ${badgesHtml}<span class="username">${msg.data.name || "متابع"}:</span><span class="text">${msg.data.text || ""}</span>
+                          </div>`;
                     chatContainer.prepend(msgDiv);
                     if (chatContainer.children.length > 15) chatContainer.removeChild(chatContainer.lastChild);
                 }
