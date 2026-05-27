@@ -69,7 +69,7 @@
        }
 
 
-        /* ── بنر الهدايا الذكي المستقر ── */
+        /* ── بنر الهدايا الذكي والمطور ── */
         #gift-banner-container {
             position: absolute;
             top: 160px;
@@ -80,26 +80,54 @@
             justify-content: center;
             align-items: center;
             pointer-events: none;
-            z-index: 90;
+            z-index: 900; /* رفع الطبقة ليكون بارزاً */
         }
         .gift-banner {
-            background: linear-gradient(135deg, rgba(180, 0, 100, 0.92) 0%, rgba(90, 0, 200, 0.92) 100%);
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            border-radius: 20px;
-            padding: 16px 36px;
+            background: rgba(20, 15, 30, 0.85); /* 🛠️ خلفية داكنة فخمة مع تلميحة بنفسجية ملكية زجاجية */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 188, 0, 0.25); /* 🛠️ حافة مضيئة خفيفة باللون الذهبي */
+            border-radius: 20px; /* 🛠️ حواف دائرية ناعمة متناسقة مع الشات وبنر المتابعة */
+            padding: 14px 28px;
             color: white;
             display: flex;
             align-items: center;
-            gap: 18px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+            gap: 16px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 15px rgba(255, 188, 0, 0.1);
             animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .gift-banner img { width: 52px; height: 52px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, 0.4); }
-        .gift-text h2 { font-size: 22px; font-weight: 700; color: #fff; }
-        .gift-text p  { font-size: 17px; color: #ffeb3b; font-weight: 700; margin-top: 3px; display: inline-block; }
+        .gift-banner img { 
+            width: 48px; 
+            height: 48px; 
+            border-radius: 50%; 
+            border: 2px solid #ffbc00; /* 🛠️ حافة ذهبية متناسقة حول صورة الداعم */
+            flex-shrink: 0;
+        }
+        .gift-text h2 { 
+            font-size: 18px; 
+            font-weight: 700; 
+            color: #fff; 
+            font-family: 'IBM Plex Sans Arabic', sans-serif; /* 🍏 تطبيق خط أبل النظيف */
+        }
+        .gift-text p { 
+            font-size: 15px; 
+            color: #ffbc00; /* 🛠️ تحويل اللون للأصفر الذهبي الرسمي المعتمد في البث */
+            font-weight: 700; 
+            margin-top: 3px; 
+            display: inline-block; 
+            font-family: 'IBM Plex Sans Arabic', sans-serif; /* 🍏 تطبيق خط أبل النظيف */
+        }
         
         /* تأثير النبض لزيادة العداد حياً */
-        .count-pop { animation: popScale 0.3s ease-out; }
+        .count-pop { 
+            animation: popScale 0.3s ease-out; 
+            color: #fff !important; 
+            background: #ff0055; 
+            padding: 2px 8px; 
+            border-radius: 8px; 
+            font-weight: 800;
+        }
+
 
         /* ── بنر المتابعة الذكي (فوق الكل) ── */
         #follow-banner-container {
@@ -111,19 +139,55 @@
             pointer-events: none;
             z-index: 200; /* يضمن الظهور فوق كروت الشات والانضمام */
         }
-        .follow-banner {
-            background: rgba(10, 8, 25, 0.65);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(157, 93, 255, 0.5);
-            border-radius: 22px;
-            padding: 16px 22px;
+                .follow-banner {
+            background: rgba(15, 15, 25, 0.85); /* 🛠️ خلفية داكنة فخمة متناسقة مع الشات */
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15); /* 🛠️ حافة رفيعة أنيقة */
+            border-radius: 20px; /* 🛠️ حواف دائرية ناعمة تطابق كروت الشات */
+            padding: 14px 24px;
             display: flex;
             align-items: center;
             gap: 16px;
-            box-shadow: 0 0 40px rgba(157, 93, 255, 0.25), 0 12px 40px rgba(0, 0, 0, 0.6);
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5), 0 0 15px rgba(157, 93, 255, 0.2);
             animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
+        .follow-banner img { 
+            width: 50px; 
+            height: 50px; 
+            border-radius: 50%; 
+            border: 2px solid #ffbc00; /* 🛠️ جعل حافة صورة المتابع باللون الذهبي المتناسق مع اسم الشات */
+            flex-shrink: 0; 
+        }
+        .follow-info { flex: 1; }
+        .follow-label { 
+            font-size: 11px; 
+            font-weight: 800; 
+            color: #ffbc00; /* 🛠️ لون ذهبي متوهج */
+            letter-spacing: 1px; 
+            text-transform: uppercase;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+        .follow-name { 
+            font-size: 20px; 
+            color: #ffffff; 
+            font-weight: 700; 
+            margin-top: 1px;
+            font-family: 'IBM Plex Sans Arabic', sans-serif; /* 🛠️ تطبيق خط أبل النظيف */
+        }
+        .follow-count { 
+            font-size: 13px; 
+            color: rgba(255, 255, 255, 0.6); 
+            margin-top: 2px; 
+            font-weight: 600;
+            font-family: 'IBM Plex Sans Arabic', sans-serif;
+        }
+        .follow-icon { 
+            font-size: 28px; 
+            flex-shrink: 0;
+            animation: popScale 0.6s infinite alternate; /* 🛠️ إضافة حركة تفاعلية خفيفة للايقونة */
+        }
+
         .follow-banner img { width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(157, 93, 255, 0.7); flex-shrink: 0; }
         .follow-info { flex: 1; }
         .follow-label { font-size: 12px; font-weight: 700; color: rgba(180, 130, 255, 0.9); letter-spacing: 1.5px; text-transform: uppercase; }
@@ -351,15 +415,16 @@
                         currentFollowUser = null;
                     }, 7000);
                 }
-
-                // ── منطق العداد التراكمي الحي للهدايا المتتالية ──
+                // ── منطق العداد التراكمي الحي للهدايا مع عرض أيقونة الهدية الرسمية ──
                 if (msg.type === "gift") {
                     const name     = msg.data.name || "داعم كريم";
                     const giftName = msg.data.giftName;
                     const avatar   = msg.data.avatar || fallbackAvatar;
                     const newCount = msg.data.count || 1;
+                    // جلب رابط أيقونة الهدية من التيك توك مباشرة
+                    const giftIcon = msg.data.giftIcon || msg.data.giftPictureUrl || ""; 
 
-                    // تحقق إذا كان نفس الشخص يرسل نفس الهدية متتالياً
+                    // تحقق إذا كان نفس الشخص يرسل نفس الهدية متتالياً لزيادة العداد
                     if (currentGiftUser === name && currentGiftName === giftName) {
                         currentGiftCount += newCount;
                         clearTimeout(giftTimer);
@@ -367,7 +432,6 @@
                         const countEl = document.getElementById("gift-counter-hit");
                         if (countEl) {
                             countEl.innerText = `${giftName} × ${currentGiftCount}`;
-                            // تفعيل هزة العداد الحية النطاطة
                             countEl.classList.remove("count-pop");
                             void countEl.offsetWidth; 
                             countEl.classList.add("count-pop");
@@ -379,6 +443,9 @@
                         currentGiftCount = newCount;
                         clearTimeout(giftTimer);
 
+                        // تجهيز وسم صورة الهدية إذا توفر الرابط الخاص بها
+                        const giftImgHtml = giftIcon ? `<img src="${giftIcon}" style="width: 48px; height: 48px; object-fit: contain; margin-right: auto; animation: popScale 0.4s infinite alternate;">` : "";
+
                         giftContainer.innerHTML = `
                             <div class="gift-banner">
                                 <img src="${avatar}" onerror="this.src='${fallbackAvatar}'">
@@ -386,7 +453,7 @@
                                     <h2> 🤍 شكراً: ${name}</h2>
                                     <p id="gift-counter-hit" class="count-pop">${giftName} × ${currentGiftCount}</p>
                                 </div>
-                            </div>`;
+                                ${giftImgHtml} </div>`;
                     }
 
                     giftTimer = setTimeout(() => {
