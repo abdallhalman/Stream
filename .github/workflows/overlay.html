@@ -75,17 +75,19 @@
 
         /* ── بنر الهدايا الذكي والمطور ── */
         #gift-banner-container {
-            position: absolute;
-            top: 160px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 620px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            pointer-events: none;
-            z-index: 900; /* رفع الطبقة ليكون بارزاً */
-        }
+          position: absolute;
+          top: 160px;
+          left: 0;
+          right: 0;
+          margin: 0 auto;
+          width: 620px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          pointer-events: none;
+          z-index: 900;
+       }
+
         .gift-banner {
             background: rgba(20, 15, 30, 0.85); /* 🛠️ خلفية داكنة فخمة مع تلميحة بنفسجية ملكية زجاجية */
             backdrop-filter: blur(20px);
@@ -99,7 +101,6 @@
             gap: 16px;
             box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 15px rgba(255, 188, 0, 0.1);
             animation: bounceIn 0.9s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
-            transform: translate3d(0, 0, 0);
             will-change: transform, opacity;
 
         }
@@ -138,14 +139,18 @@
 
         /* ── بنر المتابعة الذكي (فوق الكل) ── */
         #follow-banner-container {
-            position: absolute;
-            bottom: 140px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 540px;
-            pointer-events: none;
-            z-index: 200; /* يضمن الظهور فوق كروت الشات والانضمام */
+          position: absolute;
+          bottom: 140px;
+          left: 0;
+          right: 0;
+          margin: 0 auto;
+          width: 540px;
+          display: flex;
+          justify-content: center;
+          pointer-events: none;
+          z-index: 200;
         }
+
         .follow-banner {
             background: rgba(15, 15, 25, 0.85); /* 🛠️ خلفية داكنة فخمة متناسقة مع الشات */
             backdrop-filter: blur(20px);
