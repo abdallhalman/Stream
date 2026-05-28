@@ -136,7 +136,7 @@
             font-weight: 800;
         }
 
-         /* ─── بنر المتابعة الذكي والمطور (الهيكل الجديد) ─── */
+            /* ─── بنر المتابعة الذكي والمطور (نسخة السنتر والأفاتار اليميني) ─── */
 #follow-banner-container {
     position: absolute;
     bottom: 140px;
@@ -151,32 +151,42 @@
 }
 
 .follow-banner {
-    background: rgba(20, 15, 30, 0.75); /* خلفية ملكية زجاجية شفافة متناسقة مع الشات */
+    background: rgba(20, 15, 30, 0.75); /* خلفية ملكية زجاجية شفافة */
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border: 1px solid rgba(255, 255, 255, 0.15);
-    border-radius: 50px; /* تصميم دائري الحواف بالكامل كالأصلي */
-    padding: 10px 24px;
+    border-radius: 50px;
+    padding: 10px 20px;
     display: flex;
+    flex-direction: row-reverse; /* أجبرنا العناصر على الترتيب من اليمين لليسار بشكل طبيعي */
     align-items: center;
-    justify-content: space-between;
-    width: 100%;
+    justify-content: center; /* إلغاء space-between وتجميع العناصر بالمنتصف لمنع انحراف اليسار */
+    gap: 20px; /* مسافة ثابتة وموزونة بين الأفاتار والنصوص */
+    width: auto; /* يجعل حجم البنر مرناً وملموماً على حسب محتواه بدلاً من التمدد العشوائي */
+    min-width: 320px;
     box-sizing: border-box;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     animation: slideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
     will-change: transform, opacity;
 }
 
-/* القسم الأيسر: النصوص والأسماء */
+/* القسم الأيمن (صار يميناً الآن): يحتوي على الصورة والاسم بجانبها */
 .follow-left-part {
     display: flex;
+    flex-direction: row-reverse; /* وضع الصورة يمين الاسم مباشرة */
+    align-items: center;
+    gap: 12px;
+}
+
+/* حاوية النصوص */
+.follow-text-group {
+    display: flex;
     flex-direction: column;
-    justify-content: center;
-    gap: 2px;
+    align-items: flex-end; /* محاذاة النصوص لليمين لتناسب اللغة العربية */
 }
 
 .follow-label {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 800;
     color: #ffbc00; /* الذهبي المعتمد */
     letter-spacing: 0.5px;
@@ -185,17 +195,16 @@
 }
 
 .follow-name {
-    font-size: 22px;
+    font-size: 20px;
     color: #ffffff;
     font-weight: 700;
     font-family: 'IBM Plex Sans Arabic', sans-serif;
 }
 
-/* القسم الأيمن: العداد الثابت وصورة الشخص */
+/* القسم الأيسر (صار يساراً الآن): العداد */
 .follow-right-part {
     display: flex;
     align-items: center;
-    gap: 14px;
 }
 
 .follow-count-box {
@@ -220,20 +229,19 @@
 }
 
 .follow-avatar-box {
-    position: relative;
     width: 52px;
     height: 52px;
+    flex-shrink: 0;
 }
 
 .follow-banner img {
     width: 100%;
     height: 100%;
     border-radius: 50%;
-    border: 2px solid #ffbc00; /* إطار ذهبي رفيع حول الصورة */
+    border: 2px solid #ffbc00; /* إطار ذهبي رفيع */
     object-fit: cover;
-    flex-shrink: 0;
-}
-          
+        }
+    
 
         .follow-banner img { width: 56px; height: 56px; border-radius: 50%; border: 2px solid rgba(157, 93, 255, 0.7); flex-shrink: 0; }
         .follow-info { flex: 1; }
@@ -447,12 +455,17 @@
                     clearTimeout(followTimer);
                     currentFollowUser = name;
 
-                            followContainer.innerHTML = `
+                   followContainer.innerHTML = `
         <div id="follow-banner-container">
             <div class="follow-banner">
                 <div class="follow-left-part">
-                    <span class="follow-label">Follow 👤</span>
-                    <div class="follow-name" id="follow-name">${name}</div>
+                    <div class="follow-avatar-box">
+                        <img id="follow-avatar" src="${avatar}" alt="avatar">
+                    </div>
+                    <div class="follow-text-group">
+                        <span class="follow-label">Follow 👤</span>
+                        <div class="follow-name" id="follow-name">${name}</div>
+                    </div>
                 </div>
                 
                 <div class="follow-right-part">
@@ -460,15 +473,11 @@
                         <span class="follow-count-icon">👥</span>
                         <span class="follow-count" id="follow-count">${count || '0'}</span>
                     </div>
-                    <div class="follow-avatar-box">
-                        <img id="follow-avatar" src="${avatar}" alt="avatar">
-                    </div>
                 </div>
             </div>
         </div>
         `;
-        
-                
+
                     followTimer = setTimeout(() => {
                         followContainer.innerHTML = "";
                         currentFollowUser = null;
