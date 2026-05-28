@@ -68,14 +68,30 @@ jobs:
       - name: Download Video
         run: gdown 1NXc6Qzw00ShvoQlZRvSQ-9_xqdyUw2j0 -O video.mp4
 
-      # ── إنشاء قائمة تشغيل عشوائية ودمجها ──
+      # ── 4. خلط الأصوات عشوائياً + كسر البصمة الرقمية بأقوى فلاتر هندسة صوتية ──
       - name: Create playlist and merge
         run: |
+          # 1. خلط ترتيب الملفات الصوتية عشوائياً
           ls downloads/audio*.mp3 | shuf > playlist.txt
           while IFS= read -r file; do
             echo "file '$file'"
           done < playlist.txt > concat.txt
-          ffmpeg -f concat -safe 0 -i concat.txt -c copy merged_audio.mp3 -y
+          
+          # 2. دمج الملفات بشكل مبدئي وسريع
+          ffmpeg -f concat -safe 0 -i concat.txt -c copy temp_merged.mp3 -y
+          
+          # 3. توليد قيم عشوائية متغيرة في كل رن (سرعة ونبرة وتردد مختلف)
+          # توليد سرعة عشوائية خفيفة جداً بين 0.985 و 1.015
+          TEMPO=$(awk "BEGIN {srand(); print 0.985 + (rand() * 0.03)}")
+          # توليد طبقة صوت (Pitch) عشوائية لتغيير هوية الموجة الصوتية
+          PITCH=$(awk "BEGIN {srand(); print 0.99 + (rand() * 0.02)}")
+          
+          # 4. معالجة وتطبيق فلاتر كسر البصمة العميقة وإنتاج الملف النهائي
+          ffmpeg -i temp_merged.mp3 -af "asetrate=44100*$PITCH,atempo=$TEMPO,aresample=44100,dynaudnorm" -b:a 192k merged_audio.mp3 -y
+          
+          # 5. تنظيف الملفات المؤقتة
+          rm -f temp_merged.mp3 concat.txt playlist.txt
+
 
       # ── تشغيل السيرفر والبث ──
       - name: Run Puppeteer Stream Server
