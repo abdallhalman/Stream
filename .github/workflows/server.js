@@ -49,26 +49,52 @@ const rndSpeed  = (27 + Math.random() * 6).toFixed(2);
 function startFFmpeg() {
     if (ffmpegStarted) return;
     ffmpegStarted = true;
-    const ffmpeg = spawn("ffmpeg", [
-        "-re", "-framerate", `${FPS}`,
-        "-f", "image2",
-        "-stream_loop", "-1",
-        "-i", path.join(framesDir, "frame_%03d.png"),
-        "-stream_loop", "-1", "-re", "-i", videoPath,
-        "-stream_loop", "-1", "-re", "-i", audioPath,
-        "-filter_complex", `[1:v]crop=${WIDTH-rndCrop}:${HEIGHT-rndCrop}:${rndX}:${rndY},scale=${WIDTH}:${HEIGHT},eq=brightness=${rndBright}:contrast=1.0[v1];[v1][0:v]overlay=0:0[v]`,
-        "-map", "[v]",
-        "-map", "2:a",
-        "-c:v", "libx264",
-        "-preset", "ultrafast",
-        "-tune", "zerolatency",
-        "-r", rndSpeed,
-        "-b:v", "2500k", "-maxrate", "2500k", "-bufsize", "2500k",
-        "-g", "50",
-        "-c:a", "aac", "-b:a", "128k", "-ar", "44100",
-        "-f", "flv",
-        `rtmp://live.restream.io/live/${STREAM_KEY}`
-    ]);
+const ffmpeg = spawn("ffmpeg", [
+    "-re",                      // لضبط سرعة القراءة متزامنة مع الوقت الفعلي
+    "-loop", "1",
+    "-f", "image2",
+    "-i", mainFramePath,        // المدخل [0] الأوفرلاي الشفاف القادم من المتصفح
+    
+    "-stream_loop", "-1",
+    "-i", videoPath,            // المدخل [1] فيديو الخلفية الأساسي
+    
+    "-i", audioPath,            // المدخل [2] ملف الصوت المدمج
+    
+    "-filter_complex", 
+    // 1. تثبيت فريمات وأبعاد فيديو الخلفية الخاص بك
+    `[1:v]fps=30,scale=${WIDTH}:${HEIGHT}[bg];` +
+    
+    // 2. تحويل الصوت الفعلي إلى موجة نيون متحركة (تتفاعل تلقائياً مع مستوى الصوت)
+    // العرض 700 والارتفاع 180، بلون ذهبي نيون متناسق مع تصميمك (0xFFBC00) وبشفافية 85%
+    `[2:a]showwaves=s=700x180:mode=line:rate=30:colors=0xFFBC00@0.85:scale=sqrt[audio_wave];` +
+    
+    // 3. تركيب موجة الصوت فوق فيديو الخلفية بالمنتصف تماماً بالثلث السفلي (X=290, Y=480)
+    `[bg][audio_wave]overlay=290:480:shortest=1[bg_with_waves];` +
+    
+    // 4. دمج طبقة الأوفرلاي الشفاف (تفاعلات التيك توك اللحظية) في المقدمة فوق كل شيء
+    `[bg_with_waves][0:v]overlay=0:0[out_v]`,
+    
+    "-map", "[out_v]",          // توجيه الفيديو النهائي المدمج للبث
+    "-map", "2:a",              // توجيه الصوت الأصلي للبث
+    
+    // الحفاظ على كامل إعدادات الجودة والثبات الأصلية الخاصة بك:
+    "-c:v", "libx264",
+    "-r", "30",
+    "-profile:v", "baseline",
+    "-g", "60",                 
+    "-b:v", "2500k",            
+    "-maxrate", "2500k",
+    "-bufsize", "5000k",
+    "-pix_fmt", "yuv420p",
+    
+    "-c:a", "aac",
+    "-b:a", "128k",
+    "-ar", "44100",
+    
+    "-f", "flv",
+    `rtmp://localhost/live/${STREAM_KEY}` // رابط مسار البث النهائي الخاص بك
+]);
+
     ffmpeg.stderr.on("data", d => process.stderr.write(d));
     console.log("FFmpeg started.");
 }
