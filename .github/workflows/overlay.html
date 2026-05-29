@@ -74,67 +74,98 @@
        }
 
         /* ── بنر الهدايا الذكي والمطور ── */
-        #gift-banner-container {
-          position: absolute;
-          top: 160px;
-          left: 0;
-          right: 0;
-          margin: 0 auto;
-          width: 620px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          pointer-events: none;
-          z-index: 900;
-       }
+  #gift-banner-container {
+    position: absolute;
+    top: 160px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: max-content; 
+    max-width: 90%; 
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    z-index: 900;
+}
 
-        .gift-banner {
-            background: rgba(20, 15, 30, 0.85); /* 🛠️ خلفية داكنة فخمة مع تلميحة بنفسجية ملكية زجاجية */
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 188, 0, 0.25); /* 🛠️ حافة مضيئة خفيفة باللون الذهبي */
-            border-radius: 20px; /* 🛠️ حواف دائرية ناعمة متناسقة مع الشات وبنر المتابعة */
-            padding: 14px 28px;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6), 0 0 15px rgba(255, 188, 0, 0.1);
-            animation: bounceIn 0.9s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
-            will-change: transform, opacity;
 
-        }
-        .gift-banner img { 
-            width: 48px; 
-            height: 48px; 
-            border-radius: 50%; 
-            border: 2px solid #ffbc00; /* 🛠️ حافة ذهبية متناسقة حول صورة الداعم */
-            flex-shrink: 0;
-        }
-        .gift-text h2 { 
-            font-size: 18px; 
-            font-weight: 700; 
-            color: #fff; 
-            font-family: 'IBM Plex Sans Arabic', sans-serif; /* 🍏 تطبيق خط أبل النظيف */
-        }
-        .gift-text p { 
-            font-size: 15px; 
-            color: #ffbc00; /* 🛠️ تحويل اللون للأصفر الذهبي الرسمي المعتمد في البث */
-            font-weight: 700; 
-            margin-top: 3px; 
-            display: inline-block; 
-            font-family: 'IBM Plex Sans Arabic', sans-serif; /* 🍏 تطبيق خط أبل النظيف */
-        }
-        
-        /* تأثير النبض لزيادة العداد حياً */
-        .count-pop { 
-            animation: popScale 0.3s ease-out; 
-            color: #fff !important; 
-            background: #ff0055; 
-            padding: 2px 8px; 
-            border-radius: 8px; 
-            font-weight: 800;
-        }
+.gift-banner {
+    background: rgba(30, 20, 50, 0.92); 
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    border: 2px solid #ffbc00; 
+    border-radius: 24px; 
+    padding: 18px 32px; 
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 24px; 
+    box-shadow: 0 15px 50px rgba(255, 188, 0, 0.25), 0 0 25px rgba(255, 188, 0, 0.15);
+    animation: bounceIn 0.05s linear forwards;
+    will-change: transform, opacity;
+    min-width: 420px; 
+}
+/* 👤 كود صورة الشخص (الداعم) - استهداف مباشر للصورة داخل صندوق النصوص لتظل دائرية ومحمية */
+.gift-banner div img {
+    width: 44px !important;
+    height: 44px !important;
+    border-radius: 50% !important;  /* 🎯 دائرية كاملة وصارمة للشخص فقط */
+    object-fit: cover !important;
+    border: 2px solid rgba(255, 255, 255, 0.6) !important;
+    animation: none !important;
+    transform: scale(1) !important;
+    margin-left: 0 !important;
+}
+
+/* 👑 كود صورة الهدية - استهداف مباشر وحصري عبر الكلاس النيون اللي وفره الجافا سكريبت */
+.gift-banner .gift-icon-neon {
+    width: 85px !important; 
+    height: 85px !important;
+    object-fit: contain !important; /* 🎯 تظهر كاملة بدون أي تمطيط أو اقتطاع */
+    border-radius: 0% !important;  /* 🚫 إلغاء الدائرة تماماً لتتحرر أطراف الهدية الشفافة */
+    border: none !important;        
+    flex-shrink: 0 !important;
+    filter: drop-shadow(0 0 15px #ffbc00) !important; 
+    animation: none !important;
+    transform: scale(1) !important;
+}
+
+.gift-text h2 {
+    font-size: 22px; 
+    font-weight: 800;
+    color: #ffffff;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+    margin: 0;
+}
+
+.gift-text p {
+    font-size: 17px; 
+    color: #ffff00; 
+    font-weight: 700;
+    margin-top: 4px;
+    margin-bottom: 0;
+    display: inline-block;
+    font-family: 'IBM Plex Sans Arabic', sans-serif;
+}
+
+/* 🔥 عداد التكرار والـ X - وضوح خارق وحجم ضخم ينبض بحماس */
+.count-pop {
+    animation: popScale 0.15s ease-out;
+    color: #ffffff !important;
+    background: linear-gradient(135deg, #ff0055, #ff00aa); 
+    padding: 6px 16px; 
+    border-radius: 14px; 
+    font-size: 28px; 
+    font-weight: 900; 
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 0 15px rgba(255, 0, 85, 0.6);
+    display: inline-block;
+    margin-left: 10px;
+    font-family: Arial, sans-serif; 
+}
+
 
             /* ─── بنر المتابعة الذكي والمطور (نسخة السنتر والأفاتار اليميني) ─── */
 #follow-banner-container {
@@ -166,7 +197,7 @@
     min-width: 320px;
     box-sizing: border-box;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-    animation: slideUp 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards !important;
+    animation: slideUp 0.05s linear forwards !important;
     will-change: transform, opacity;
 }
 
@@ -262,9 +293,9 @@
             overflow: hidden;
             z-index: 50;
             /* سر صناعة قناع التلاشي التدريجي الـ iOS الخيالي */
-            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%);
-            mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 65%, rgba(0,0,0,0) 100%);
-        }
+            -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0.1) 90%, rgba(0,0,0,0) 100%);
+             mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 10%, rgba(0,0,0,0.8) 20%, rgba(0,0,0,0.7) 30%, rgba(0,0,0,0.6) 40%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.3) 70%, rgba(0,0,0,0.2) 80%, rgba(0,0,0,0.1) 90%, rgba(0,0,0,0) 100%);
+          }
         
                 /* تطابق كامل ومثالي مع حواف كروت الانضمام ونظام الـ iOS الرفيع */
         .chat-msg {
@@ -280,7 +311,7 @@
             align-items: flex-start; /* 🛠️ السماح للصندوق بالتمدد لأسفل مع الأسطر الكثيرة */
             gap: 10px;
             /* استخدام نفس نظام أنيميشن الـ الانضمام الناعم والمريح للعين */
-            animation: slideInRight 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.15);
+            animation: slideInRight 0.05s linear forwards;
          }
         #chat-container .chat-msg:nth-child(1) { opacity: 1; }
         #chat-container .chat-msg:nth-child(2) { opacity: 0.75; }
@@ -336,19 +367,19 @@
             align-items: center;
             gap: 13px;
             box-shadow: 0 6px 24px rgba(0,0,0,0.3);
-            animation: slideInLeft 0.8s cubic-bezier(0.25, 1, 0.5, 1) forwards, fadeOut 0.8s ease-out 5.5s forwards;
+            animation: slideInLeft 0.05s linear forwards, fadeOut 0.05s linear 5.5s forwards;
 
         }
         .join-notification .avatar { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); }
         .join-notification .name   { color: #ffffff; font-weight: 700; font-size: 16px; }
         .join-notification .action { color: rgba(255, 255, 255, 0.55); font-size: 13px; margin-top: 2px; font-weight: 600; }
 
-        /* ── جرافيكس الأنيميشنز الثابتة والمريحة ── */
-        @keyframes slideInRight { from { opacity: 0; transform: translate3d(30px, 0, 0); } to { opacity: 1; transform: translate3d(0, 0, 0); } }
-        @keyframes slideInLeft  { 0% { opacity: 0; transform: translate3d(-30px, 0, 0); } 20% { opacity: 0; transform: translate3d(-30px, 0, 0); } 100% { opacity: 1; transform: translate3d(0, 0, 0); } }
-        @keyframes slideUp      { 0% { opacity: 0; transform: translateY(50px); } 100% { opacity: 1; transform: translateY(0); } }
-        @keyframes bounceIn     { 0% { opacity: 0; transform: scale3d(0.3, 0.3, 0.3); } 20% { opacity: 0; transform: scale3d(0.5, 0.5, 0.5); } 40% { opacity: 0.4; transform: scale3d(0.8, 0.8, 0.8); } 70% { opacity: 0.9; transform: scale3d(1.03, 1.03, 1.03); } 100% { opacity: 1; transform: scale3d(1, 1, 1); } }
-        @keyframes fadeOut      { from { opacity:1; } to { opacity:0; max-height:0; padding:0; margin:0; border:none; } }
+    
+        @keyframes slideInLeft  { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes slideInRight { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes slideUp      { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes bounceIn     { 0% { opacity: 0; } 100% { opacity: 1; } }
+        @keyframes fadeOut      { from { opacity: 1; } to { opacity: 0; } }
         @keyframes popScale     { 0% { transform: scale(1); } 50% { transform: scale(1.3); color: #fff; } 100% { transform: scale(1); } }
     </style>
 </head>

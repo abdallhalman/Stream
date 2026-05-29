@@ -89,10 +89,12 @@ async function startOverlayStream() {
 
     console.log("Launching FFmpeg with Strong Anti-Copyright Visual Filters...");
 
-    // حساب قيم عشوائية دقيقة لتغيير البصمة اللونية والسطوع بشكل خفي في كل إقلاع للبث
-    const randBrightness = (Math.random() * 0.02 - 0.01).toFixed(4); // قيمة سطوع عشوائية متغيرة خفيفة
-    const randContrast = (1 + (Math.random() * 0.02 - 0.01)).toFixed(4); // قيمة تباين عشوائية متغيرة خفيفة
-    const randSaturation = (1 + (Math.random() * 0.04 - 0.02)).toFixed(4); // قيمة تشبع لوني متغيرة خفيفة
+    // حساب قيم عشوائية محسّنة لكسر البصمة البصرية بشكل فعال في كل إقلاع للبث
+    const randBrightness = (Math.random() * 0.06 - 0.03).toFixed(4);        // ±0.03 سطوع
+    const randContrast   = (1 + (Math.random() * 0.06 - 0.03)).toFixed(4);  // ±0.03 تباين
+    const randSaturation = (1 + (Math.random() * 0.08 - 0.04)).toFixed(4);  // ±0.04 تشبع لوني
+    const randNoise      = (2 + Math.floor(Math.random() * 4));              // 2~5 نويز عشوائي
+    const randHue        = (Math.random() * 4 - 2).toFixed(2);              // ±2 درجة هيو
     
     const ffmpegArgs = [
     "-re",                      // <--- لضبط سرعة القراءة
@@ -105,9 +107,12 @@ async function startOverlayStream() {
     "-i", audioPath,
     
     "-filter_complex",
-    `[1:v]fps=30,scale=${WIDTH}:${HEIGHT}[bg_anti_copyright];` + // إزالة المتغيرات العشوائية لتجنب الخطأ
+    `[1:v]fps=30,scale=${WIDTH}:${HEIGHT},` +
+    `eq=brightness=${randBrightness}:contrast=${randContrast}:saturation=${randSaturation},` +
+    `hue=h=${randHue},` +
+    `noise=alls=${randNoise}:allf=t[bg_v];` +
     `[0:v]fps=30[overlay_v];` +
-    `[bg_anti_copyright][overlay_v]overlay=0:0:shortest=1[out_v]`,
+    `[bg_v][overlay_v]overlay=0:0:shortest=1[out_v]`,
     
     "-map", "[out_v]",
     "-map", "2:a",
