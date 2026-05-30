@@ -1,4 +1,4 @@
-name: test.puppeteer
+name: test.puppeteer2
 
 on:
   workflow_dispatch:
