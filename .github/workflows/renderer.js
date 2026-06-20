@@ -90,7 +90,7 @@ const AZKAR_LIST = [
     { main: "أستغفر الله",     sub: "أستغفر الله العظيم وأتوب إليه 🕋"         },
 ];
 
-const NOTIF_MAX       = 3;
+const NOTIF_MAX        = 10; // عدد الكروت المحفوظة بالذاكرة لكل قائمة (يكفي لتعبئة حاوية التعليقات الأطول)
 const GIFT_HIDE_MS     = 7000;
 const FOLLOW_HIDE_MS   = 7000;
 const MILESTONE_MS     = 10000;
@@ -294,17 +294,46 @@ function truncateText(text, maxWidth) {
 // 7. الرسم — كل عنصر بدالته الخاصة، بترتيب z-index الأصلي (من الخلف للأمام)
 // ──────────────────────────────────────────────
 
+// يحاكي بالضبط linear-gradient(to top, ...) الأصلي في #join-container:
+// 0%→معتم بالكامل، 15%→0.95، 50%→0.7، 80%→0.2، 100%→شفاف تماماً
+// دالة عامة تحاكي linear-gradient(to top, ...) بأي نقاط توقف تُمرَّر لها
+function maskAlpha(distanceFromBottom, containerHeight, stops) {
+    const f = distanceFromBottom / containerHeight; // 0 = عند القاعدة، 1 = عند أعلى الحاوية
+    if (f <= 0) return 1;
+    if (f >= 1) return 0;
+    for (let i = 0; i < stops.length - 1; i++) {
+        const [f0, a0] = stops[i];
+        const [f1, a1] = stops[i + 1];
+        if (f >= f0 && f <= f1) {
+            const t = (f - f0) / (f1 - f0);
+            return a0 + (a1 - a0) * t;
+        }
+    }
+    return 0;
+}
+
+// نفس نقاط mask-image لـ #join-container الأصلي
+const JOIN_MASK_STOPS = [[0, 1], [0.15, 0.95], [0.5, 0.7], [0.8, 0.2], [1, 0]];
+// نفس نقاط mask-image لـ #chat-container الأصلي (11 نقطة، تدرّج أنعم على ارتفاع أكبر)
+const COMMENT_MASK_STOPS = [
+    [0, 1], [0.1, 0.9], [0.2, 0.8], [0.3, 0.7], [0.4, 0.6], [0.5, 0.5],
+    [0.6, 0.4], [0.7, 0.3], [0.8, 0.2], [0.9, 0.1], [1, 0],
+];
+
 function drawNotificationStack(list, x) {
     const boxW = 360;
     const cardH = 54;
-    const stepY = 88; // تباعد أكبر من قبل، يمدد المكدّس للأعلى ليقارب ارتفاع الحاوية الأصلية (280px)
+    const stepY = 58; // متقارب أكثر من السابق — يسمح بعدد أكبر من الكروت يملأ المساحة للأعلى
+    const containerHeight = 280; // نفس ارتفاع #join-container الأصلي
     const bottomY = HEIGHT - 40;
 
-    // [0] = الأحدث ويظهر بالأسفل (أقرب للحافة)، الأقدم يرتفع للأعلى ويتلاشى
+    // [0] = الأحدث ويظهر بالأسفل (أقرب للحافة)، الأقدم يرتفع للأعلى ويتلاشى تدريجياً
     list.forEach((item, idx) => {
         const cardBottom = bottomY - idx * stepY;
         const y = cardBottom - cardH;
-        const alpha = idx === 0 ? 1 : idx === 1 ? 0.65 : 0.3;
+        const distanceFromBottom = idx * stepY;
+        const alpha = maskAlpha(distanceFromBottom, containerHeight, JOIN_MASK_STOPS);
+        if (alpha <= 0.01) return; // تلاشى تماماً، لا داعي لرسمه
 
         ctx.save();
         ctx.globalAlpha = alpha;
@@ -343,9 +372,117 @@ function drawJoinNotifications() {
     drawNotificationStack(state.joinNotifications, 30); // يسار الشاشة
 }
 
+// ── نظام التعليقات الأساسي: كروت مرنة تتمدد للأسفل حسب طول النص ──
+
+// يقيس عرض نص بخط معيّن (مع ضبط ctx.font أولاً)
+function measureWith(text, font) {
+    ctx.font = font;
+    return ctx.measureText(text).width;
+}
+
+// يقسّم مجموعة "tokens" (كل واحد بخطه ولونه) إلى كلمات، ويلفّها على عدة أسطر
+// حسب maxWidth، تماماً كما يفعل المتصفح مع username + text inline.
+function layoutInlineTokens(tokens, maxWidth) {
+    const words = [];
+    tokens.forEach((tok) => {
+        String(tok.text).split(" ").forEach((w) => {
+            if (w.length) words.push({ text: w, font: tok.font, color: tok.color });
+        });
+    });
+
+    const lines = [];
+    let currentLine = [];
+    let currentWidth = 0;
+
+    words.forEach((word) => {
+        const wWidth = measureWith(word.text, word.font);
+        const spaceWidth = currentLine.length ? measureWith(" ", word.font) : 0;
+        const projected = currentWidth + spaceWidth + wWidth;
+        if (projected > maxWidth && currentLine.length > 0) {
+            lines.push(currentLine);
+            currentLine = [word];
+            currentWidth = wWidth;
+        } else {
+            currentLine.push(word);
+            currentWidth = projected;
+        }
+    });
+    if (currentLine.length) lines.push(currentLine);
+    return lines;
+}
+
+function drawInlineLines(lines, x, startY, lineHeight) {
+    let cy = startY;
+    lines.forEach((line) => {
+        let cx = x;
+        ctx.textAlign = "left";
+        line.forEach((word) => {
+            ctx.font = word.font;
+            ctx.fillStyle = word.color;
+            ctx.fillText(word.text, cx, cy);
+            cx += measureWith(word.text, word.font) + measureWith(" ", word.font);
+        });
+        cy += lineHeight;
+    });
+}
+
 function drawCommentNotifications() {
-    const boxW = 360;
-    drawNotificationStack(state.commentNotifications, WIDTH - 30 - boxW); // يمين الشاشة
+    const boxW = 380;            // نفس عرض #chat-container الأصلي
+    const containerHeight = 600; // نفس ارتفاع #chat-container الأصلي
+    const padX = 12, padY = 6;   // نفس padding: 6px 12px الأصلي
+    const avatarR = 17, avatarD = avatarR * 2;
+    const gapAvatarText = 10;
+    const lineHeight = 24;       // يقارب line-height:1.4 على خط 18px
+    const marginTop = 8;         // المسافة بين كرت وكرت (margin-top:8px الأصلي)
+    const bottomY = HEIGHT - 40;
+    const x = WIDTH - 30 - boxW; // right:30px
+
+    const maxTextW = boxW - padX * 2 - avatarD - gapAvatarText;
+
+    let cursorBottom = bottomY;
+
+    state.commentNotifications.forEach((item, idx) => {
+        const tokens = [
+            { text: `${item.name}:`, font: `700 18px ${FONT_BOLD}`, color: "#ffbc00" },
+            { text: item.action || "", font: `600 18px ${FONT_TEXT}`, color: "rgba(255,255,255,0.95)" },
+        ];
+        const lines = layoutInlineTokens(tokens, maxTextW);
+        const textBlockH = lines.length * lineHeight;
+        const contentH = Math.max(avatarD + 2, textBlockH); // +2 يطابق margin-top الأفاتار الأصلي
+        const cardH = contentH + padY * 2;
+
+        const cardBottom = cursorBottom;
+        const cardTop = cardBottom - cardH;
+        cursorBottom = cardTop - marginTop; // الكرت التالي (الأقدم) يرتفع فوقه بنفس فجوة margin-top
+
+        // نفس منطق nth-child الأصلي: تدرّج خشن بالرتبة + قناع ناعم على كل الحاوية
+        const tierAlpha = idx === 0 ? 1 : idx === 1 ? 0.75 : idx === 2 ? 0.5 : 0.25;
+        const distanceFromBottom = bottomY - cardTop;
+        const smoothMask = maskAlpha(distanceFromBottom, containerHeight, COMMENT_MASK_STOPS);
+        const alpha = tierAlpha * smoothMask;
+        if (alpha <= 0.01 || cardTop > HEIGHT) return;
+
+        ctx.save();
+        ctx.globalAlpha = alpha;
+
+        ctx.fillStyle = "rgba(12,12,18,0.75)";
+        roundRect(x, cardTop, boxW, cardH, 14);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,0.12)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        // الأفاتار يلتصق بأعلى الكرت (align-items: flex-start الأصلي)، لا يتوسّط رأسياً
+        const avatarCx = x + padX + avatarR;
+        const avatarCy = cardTop + padY + 2 + avatarR;
+        drawCircleImage(getImage(item.avatar), avatarCx, avatarCy, avatarR, "rgba(255,188,0,0.6)", 1);
+
+        const textX = x + padX + avatarD + gapAvatarText;
+        const textStartY = cardTop + padY + lineHeight * 0.78; // محاذاة خط الأساس مع أول سطر
+        drawInlineLines(lines, textX, textStartY, lineHeight);
+
+        ctx.restore();
+    });
 }
 
 function drawLogo() {
