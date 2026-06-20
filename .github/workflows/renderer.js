@@ -121,7 +121,8 @@ const state = {
     follow: null,
     followHideAt: 0,
 
-    notifications: [], // [0]=الأحدث ... حتى NOTIF_MAX
+    joinNotifications: [],    // [0]=الأحدث — جهة اليسار
+    commentNotifications: [], // [0]=الأحدث — جهة اليمين
 };
 
 const COLOR_PALETTE = [
@@ -191,8 +192,8 @@ function setLikes(total) {
     }
 }
 
-function pushNotification(kind, name, action, avatar) {
-    state.notifications.unshift({
+function pushNotification(list, kind, name, action, avatar) {
+    list.unshift({
         kind,
         name: name || (kind === "join" ? "متابع جديد" : "متابع"),
         action: action || "",
@@ -200,15 +201,15 @@ function pushNotification(kind, name, action, avatar) {
         color: randomColor(),
         createdAt: Date.now(),
     });
-    if (state.notifications.length > NOTIF_MAX) state.notifications.length = NOTIF_MAX;
+    if (list.length > NOTIF_MAX) list.length = NOTIF_MAX;
 }
 
 function addJoin({ name, avatar }) {
-    pushNotification("join", name, "انضم إلى البث الآن ✨", avatar);
+    pushNotification(state.joinNotifications, "join", name, "انضم إلى البث الآن ✨", avatar);
 }
 
 function addComment({ name, text, avatar }) {
-    pushNotification("comment", name, text, avatar);
+    pushNotification(state.commentNotifications, "comment", name, text, avatar);
 }
 
 function setFollow({ name, avatar, followerCount }) {
@@ -245,6 +246,9 @@ function setGift({ name, giftName, count, avatar, giftIcon }) {
 // 6. أدوات رسم مساعدة
 // ──────────────────────────────────────────────
 function roundRect(x, y, w, h, r) {
+    // المتصفح (CSS) يحدّ border-radius تلقائياً عند نصف عرض/ارتفاع الصندوق،
+    // لكن canvas ما يسوي هذا تلقائياً — لو تجاهلناها تطلع زوايا حادة/شكل "كماشة" بدل بيضاوي ناعم.
+    r = Math.max(0, Math.min(r, w / 2, h / 2));
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -290,18 +294,17 @@ function truncateText(text, maxWidth) {
 // 7. الرسم — كل عنصر بدالته الخاصة، بترتيب z-index الأصلي (من الخلف للأمام)
 // ──────────────────────────────────────────────
 
-function drawJoinNotifications() {
+function drawNotificationStack(list, x) {
     const boxW = 360;
-    const x = 30;
     const cardH = 54;
-    const stepY = 64; // ارتفاع الكرت + المسافة بينه وبين التالي
+    const stepY = 88; // تباعد أكبر من قبل، يمدد المكدّس للأعلى ليقارب ارتفاع الحاوية الأصلية (280px)
     const bottomY = HEIGHT - 40;
 
     // [0] = الأحدث ويظهر بالأسفل (أقرب للحافة)، الأقدم يرتفع للأعلى ويتلاشى
-    state.notifications.forEach((item, idx) => {
+    list.forEach((item, idx) => {
         const cardBottom = bottomY - idx * stepY;
         const y = cardBottom - cardH;
-        const alpha = idx === 0 ? 1 : idx === 1 ? 0.7 : 0.35;
+        const alpha = idx === 0 ? 1 : idx === 1 ? 0.65 : 0.3;
 
         ctx.save();
         ctx.globalAlpha = alpha;
@@ -334,6 +337,15 @@ function drawJoinNotifications() {
 
         ctx.restore();
     });
+}
+
+function drawJoinNotifications() {
+    drawNotificationStack(state.joinNotifications, 30); // يسار الشاشة
+}
+
+function drawCommentNotifications() {
+    const boxW = 360;
+    drawNotificationStack(state.commentNotifications, WIDTH - 30 - boxW); // يمين الشاشة
 }
 
 function drawLogo() {
@@ -425,7 +437,7 @@ function drawTasbih() {
     ctx.textAlign = "center";
     ctx.fillText(truncateText(subText, subW - 16), cx, subY);
 
-    drawBubble(cx, subY + 30);
+    drawBubble(cx, subY + 46);
 }
 
 function drawClock() {
@@ -486,10 +498,26 @@ function drawFollowBanner() {
     if (!state.follow) return;
     const f = state.follow;
 
+    const avatarR = 26, avatarD = avatarR * 2;
+    const padX = 20;
+    const gapTextAvatar = 14;
+    const gapCountText = 20;
+    const boxH = 72;
+
     ctx.font = `700 20px ${FONT_BOLD}`;
     const nameW = ctx.measureText(f.name).width;
-    const boxH = 72;
-    const boxW = Math.max(320, nameW + 230);
+    ctx.font = `800 11px ${FONT_XBOLD}`;
+    const labelW = ctx.measureText("FOLLOW 👤").width;
+    const textBlockW = Math.max(nameW, labelW);
+
+    const countText = `👥 ${f.count}`;
+    ctx.font = `600 14px ${FONT_TEXT}`;
+    const countTextW = ctx.measureText(countText).width;
+    const cbW = countTextW + 28, cbH = 30;
+
+    // عرض الصندوق يحتسب كل العناصر (الأفاتار + النص + صندوق العداد) فلا يتجاوز أي عنصر الحدود
+    const contentW = padX + cbW + gapCountText + textBlockW + gapTextAvatar + avatarD + padX;
+    const boxW = Math.max(320, contentW);
     const x = WIDTH / 2 - boxW / 2;
     const y = HEIGHT - 90 - boxH;
 
@@ -500,31 +528,31 @@ function drawFollowBanner() {
     ctx.lineWidth = 1;
     ctx.stroke();
 
-    const avatarR = 26;
-    const avatarCx = x + boxW - 30 - avatarR;
+    // الأفاتار في أقصى اليمين
+    const avatarCx = x + boxW - padX - avatarR;
     const avatarCy = y + boxH / 2;
     drawCircleImage(getImage(f.avatar), avatarCx, avatarCy, avatarR, "#ffbc00", 2);
 
+    // النص (Follow + الاسم) يسار الأفاتار مباشرة
+    const textRightEdge = avatarCx - avatarR - gapTextAvatar;
     ctx.textAlign = "right";
     ctx.fillStyle = "#ffbc00";
     ctx.font = `800 11px ${FONT_XBOLD}`;
-    ctx.fillText("FOLLOW 👤", avatarCx - avatarR - 14, avatarCy - 8);
+    ctx.fillText("FOLLOW 👤", textRightEdge, avatarCy - 8);
 
     ctx.fillStyle = "#ffffff";
     ctx.font = `700 20px ${FONT_BOLD}`;
-    ctx.fillText(f.name, avatarCx - avatarR - 14, avatarCy + 14);
+    ctx.fillText(f.name, textRightEdge, avatarCy + 14);
 
-    const countText = `👥 ${f.count}`;
-    ctx.font = `600 14px ${FONT_TEXT}`;
-    const countW = ctx.measureText(countText).width;
-    const cbW = countW + 28, cbH = 30;
-    const cbX = x + 24;
+    // صندوق العداد في أقصى اليسار — الآن دايماً داخل حدود البنر
+    const cbX = x + padX;
     const cbY = y + boxH / 2 - cbH / 2;
     ctx.fillStyle = "rgba(255,255,255,0.08)";
     roundRect(cbX, cbY, cbW, cbH, 20);
     ctx.fill();
     ctx.textAlign = "center";
     ctx.fillStyle = "rgba(255,255,255,0.9)";
+    ctx.font = `600 14px ${FONT_TEXT}`;
     ctx.fillText(countText, cbX + cbW / 2, cbY + cbH / 2 + 5);
 }
 
@@ -585,6 +613,7 @@ function drawGiftBanner() {
 }
 
 function roundRectAt(x, y, w, h, r) {
+    r = Math.max(0, Math.min(r, w / 2, h / 2));
     ctx.beginPath();
     ctx.moveTo(x + r, y);
     ctx.arcTo(x + w, y, x + w, y + h, r);
@@ -643,7 +672,8 @@ function renderFrame() {
     ctx.shadowBlur = 0;
 
     // نفس ترتيب z-index في overlay.html الأصلي، من الخلف للأمام
-    drawJoinNotifications(); // z-index: auto (0)
+    drawJoinNotifications();    // z-index: auto (0) — يسار الشاشة
+    drawCommentNotifications(); // z-index: auto (0) — يمين الشاشة
     drawLogo();              // z-index: 50
     drawTasbih();             // z-index: 100
     drawClock();                // z-index: 100
